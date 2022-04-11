@@ -1,4 +1,4 @@
-FROM artifacts.bcp.absa.co.za/architecture-and-engineering-docker-local/node-16.13.2-slim as development
+FROM node:alpine as development
 
 WORKDIR /usr/src/app
 
@@ -14,7 +14,7 @@ RUN npm i -g rimraf
 
 RUN npm run build
 
-FROM artifacts.bcp.absa.co.za/architecture-and-engineering-docker-local/node-16.13.2-slim as production
+FROM node:alpine as production
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
