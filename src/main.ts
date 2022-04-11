@@ -5,7 +5,19 @@ import {SwaggerModule, DocumentBuilder} from '@nestjs/swagger'
 const config = require('config');
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    cors: true,
+  });
+
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*')
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Expose-Headers', 'access_token, refresh_token');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, access_token, refresh_token');
+    res.header('X-Powered-By', 'Blood, sweat and tears');
+    next();
+  });
+
   app.setGlobalPrefix(`api/${config.get('API_VERSION')}`);
 
   const options = new DocumentBuilder()

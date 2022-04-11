@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 import * as dotenv from 'dotenv';
 
@@ -27,5 +28,18 @@ export class ConfigService {
 
     get NodeEnv(): string{
         return this.get('NODE_ENV') || 'development';
+    }
+
+    get typeOrmSQLiteDB(): TypeOrmModuleOptions{
+        let entities = [__dirname+ '/../../../helpers/entities/*.entity{.ts,.js}'];
+
+        return {
+            entities,
+            keepConnectionAlive: true,
+            name: 'default',
+            type: 'sqlite',
+            database: 'recipe.sqlite',
+            synchronize: true,
+        }
     }
 }

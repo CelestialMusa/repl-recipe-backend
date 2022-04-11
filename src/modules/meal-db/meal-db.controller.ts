@@ -25,13 +25,16 @@ export class MealDbController {
         @Request() req,
         @Res() res: Response
     ){
-        if(!query_string)
-            generic_bad_request_err('Query string');
+        if(!query_string){
+            generic_bad_request_err(res,'Query string');
+            return;
+        }
 
         await this._mealDbService.search(query_string).then(resp => {
+            console.log(resp?.data);
             res.status(HttpStatus.OK).send(resp?.data);
         }).catch(err => {
-            generic_internal_server_err(err);
+            generic_internal_server_err(res,err);
         });
     }
 
@@ -44,13 +47,15 @@ export class MealDbController {
         @Param('letter') letter: string,
         @Res() res: Response,
     ){
-        if(!letter)
-            generic_bad_request_err('First letter of the meal');
+        if(!letter){
+            generic_bad_request_err(res,'First letter of the meal');
+            return;
+        }
 
         await this._mealDbService.get_meal_by_first_letter(letter).then(resp => {
             res.status(HttpStatus.OK).send(resp?.data);
         }).catch(err => {
-            generic_internal_server_err(err);
+            generic_internal_server_err(res, err);
         });
     }
 
@@ -63,12 +68,14 @@ export class MealDbController {
         @Param('meal_id') meal_id: string,
         @Res() res: Response,
     ){
-        if(!meal_id)
-            generic_bad_request_err('Meal ID');
+        if(!meal_id){
+            generic_bad_request_err(res ,'Meal ID');
+            return;
+        }
         await this._mealDbService.get_meal_by_id(meal_id).then(resp => {
             res.status(HttpStatus.OK).send(resp?.data);
         }).catch(err => {
-            generic_internal_server_err(err);
+            generic_internal_server_err(res ,err);
         });
     }
 
@@ -82,7 +89,7 @@ export class MealDbController {
         await this._mealDbService.get_meal_categories().then(resp => {
             res.status(HttpStatus.OK).send(resp?.data);
         }).catch(err => {
-            generic_internal_server_err(err);
+            generic_internal_server_err(res ,err);
         });
     }
 
@@ -95,13 +102,15 @@ export class MealDbController {
         @Param('category') category: string,
         @Res() res: Response,
     ){
-        if(!category)
-            generic_bad_request_err('Meal category');
+        if(!category){
+            generic_bad_request_err(res, 'Meal category');
+            return;
+        }
 
         await this._mealDbService.filter_by_category(category).then(resp => {
             res.status(HttpStatus.OK).send(resp?.data);
         }).catch(err => {
-            generic_internal_server_err(err);
+            generic_internal_server_err(res, err);
         });
     }
 
@@ -114,13 +123,15 @@ export class MealDbController {
         @Param('area') area: string,
         @Res() res: Response,
     ){
-        if(!area)
-            generic_bad_request_err('Area');
+        if(!area){
+            generic_bad_request_err(res, 'Area');
+            return;
+        }
 
         await this._mealDbService.filter_by_area(area).then(resp => {
             res.status(HttpStatus.OK).send(resp?.data);
         }).catch(err => {
-            generic_internal_server_err(err);
+            generic_internal_server_err(res, err);
         });
     }
 }
