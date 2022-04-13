@@ -25,7 +25,6 @@ COPY . .
 
 COPY --from=development /usr/src/app/dist ./dist
 COPY --from=development /usr/src/app/node_modules ./node_modules
-COPY --from=development /usr/src/app/certs ./dist/certs
 
 RUN NODE_OPTIONS="--max-http-headers-size=81000"
 
