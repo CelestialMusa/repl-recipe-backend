@@ -6,6 +6,7 @@ import { Recipe } from 'src/helpers/entities/recipe.entity';
 import { generic_bad_request_err, generic_internal_server_err } from 'src/helpers/generic-handler';
 import { FileInterceptorExtender } from 'src/helpers/interceptors/file-extender.interceptor';
 import { IRecipe } from 'src/helpers/interfaces/recipe.interface';
+import { S3Service } from '../shared/s3/s3/s3.service';
 import { RecipeService } from './recipe.service';
 
 @ApiTags('Recipes')
@@ -17,6 +18,7 @@ export class RecipeController {
      */
     constructor(
         private _recipeService: RecipeService,
+        private _s3Service: S3Service,
     ) {
         
     }
@@ -27,8 +29,8 @@ export class RecipeController {
     @HttpCode(HttpStatus.INTERNAL_SERVER_ERROR)
     @ApiOkResponse({type: Recipe, description: ''})
     @ApiConsumes('multipart/form-data')
-    @UseInterceptors(FileInterceptorExtender) //Info: Out of the box interceptor is known for dropping objects in the req body when there's an image, use this interceptor to retain them as image meta-data values (bit hacky but it works), Reference = https://stackoverflow.com/questions/66605192/file-uploading-along-with-other-data-in-swagger-nestjs
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptorExtender) //? INFO: Out of the box interceptor is known for dropping objects in the req body when there's an image, use this interceptor to retain them as image meta-data values (bit hacky but it works), Reference = https://stackoverflow.com/questions/66605192/file-uploading-along-with-other-data-in-swagger-nestjs
+    @UseInterceptors(FileInterceptor('file')) //! Technical debt, Type = Refactor, Task = This should ideally be refactored into a lambda function callable with an HTTPS endpoint to offload the heavy lifting of handling files in the backend (This will ofcourse not be done for the REPL recipe project.). Reference = https://docs.aws.amazon.com/lambda/latest/dg/lambda-invocation.html
     @ApiBody({
         schema: {
             type: 'object',
@@ -42,7 +44,7 @@ export class RecipeController {
                 file: {type: 'string', format: 'binary'}
             }
         },
-        description: 'Accepts a file input, stores metadata to the database and uploads to S3.'
+        description: 'Accepts a file input, stores recipe metadata to the database and uploads to S3.'
     })
     async add_recipe(
         @UploadedFile() recipe_image: any,
@@ -60,6 +62,15 @@ export class RecipeController {
             difficulty_level: recipe_image['difficulty_level'],
             instructions: recipe_image['instructions'],
             ingriedients: JSON.parse(recipe_image['ingriedients']),
+        }
+
+        const {originalname, mimetype, buffer} = recipe_image;
+
+        const upload_result = await this._s3Service.uploadToS3(originalname, buffer);
+
+        if(upload_result.$metadata.httpStatusCode !== HttpStatus.OK){
+            generic_internal_server_err(res, 'An unknown error occured whilst uploading to S3.');
+            return ;
         }
 
         this._recipeService.saveRecipe(recipe).then(async (result) => {
