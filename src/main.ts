@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {SwaggerModule, DocumentBuilder} from '@nestjs/swagger'
-
-const config = require('config');
-
+import { ConfigService } from './modules/shared/config/config.service';
 async function bootstrap() {
+  let _configService = new ConfigService();
+
   const app = await NestFactory.create(AppModule, {
     cors: true,
   });
@@ -18,12 +18,12 @@ async function bootstrap() {
     next();
   });
 
-  app.setGlobalPrefix(`api/${config.get('API_VERSION')}`);
+  app.setGlobalPrefix(`api/${_configService.get('API_VERSION')}`);
 
   const options = new DocumentBuilder()
     .setTitle('REPL Group - Recipe App API')
     .setDescription('An API Project for the REPL group recruitment process.')
-    .setVersion(`${config.get('API_VERSION')}`)
+    .setVersion(`${_configService.get('API_VERSION')}`)
     .addTag('MealDB')
     .addTag('NestJS')
     .build();
@@ -31,6 +31,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(3000);
+  await app.listen(_configService.getNumber('API_PORT'));
 }
 bootstrap();
