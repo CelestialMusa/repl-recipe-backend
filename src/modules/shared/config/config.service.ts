@@ -40,6 +40,7 @@ export class ConfigService {
             type: 'sqlite',
             database: 'recipe.sqlite',
             synchronize: true,
+            logging: true,
         }
     }
 }

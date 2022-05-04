@@ -55,6 +55,12 @@ export class RecipeController {
             return;
         }
 
+        const {originalname, mimetype, buffer} = recipe_image;
+
+        if(!(mimetype as string).includes('image')){ //Incase front-end checks are by-passed. 
+            generic_bad_request_err(res, 'Recipe image');
+        }
+
         const recipe: IRecipe = {
             title: recipe_image['title'],
             meal_type: recipe_image['meal_type'],
@@ -62,10 +68,10 @@ export class RecipeController {
             difficulty_level: recipe_image['difficulty_level'],
             instructions: recipe_image['instructions'],
             ingriedients: JSON.parse(recipe_image['ingriedients']),
+            recipe_image_name: originalname,
         }
 
-        const {originalname, mimetype, buffer} = recipe_image;
-
+        //! TODO: Type = Technical debt, Task = Steganography is an underrated attack vector, all uploaded images should be scanned and user identifying meta-data such as GPS co-ordinates, email, names, etc should be stripped from images before uploading to S3.(This of course, will not be done for the REPL recipe project.) Useful read = https://medium.com/@beirikui1985/capture-image-from-scanner-and-webcam-in-javascript-6d6d15aed465 
         const upload_result = await this._s3Service.uploadToS3(originalname, buffer);
 
         if(upload_result.$metadata.httpStatusCode !== HttpStatus.OK){
@@ -73,12 +79,12 @@ export class RecipeController {
             return ;
         }
 
-        this._recipeService.saveRecipe(recipe).then(async (result) => {
-            // recipe.ingriedients.forEach(x => {
-            //     x.recipeId = result.id;
-            // });
+        await this._recipeService.saveRecipe(recipe).then(async (result) => {
+            recipe.ingriedients.forEach(x => {
+                x.recipeId = result.id;
+            });
 
-            // await this._recipeService.saveIngriedients(recipe.ingriedients);
+            await this._recipeService.saveIngriedients(recipe.ingriedients);
 
             res.status(HttpStatus.OK).send(result);
         }).catch(err => {
@@ -100,7 +106,9 @@ export class RecipeController {
             return;
         }
 
-        await this._recipeService.getRecipe(+id).then(recipe => {
+        await this._recipeService.getRecipe(+id).then(async recipe => {
+            recipe.recipe_image_name = await this._s3Service.get_s3_pre_signed_url(recipe.recipe_image_name); 
+
             res.status(HttpStatus.OK).send(recipe);
         }).catch(err => {
             generic_internal_server_err(res, err);

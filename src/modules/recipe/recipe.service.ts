@@ -17,9 +17,9 @@ export class RecipeService {
     }
 
     async getRecipe(id: number){
-        return await this._recipeRepo.createQueryBuilder()
-            .select()
-            .where('id = :id', {id})
+        return await this._recipeRepo.createQueryBuilder('recipe')
+            .leftJoinAndSelect('recipe.ingriedients', 'ingredient')
+            .where('recipe.id = :id', {id})
             .getOne();
     }
 

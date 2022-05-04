@@ -12,6 +12,9 @@ export class Ingriedient{
     @Column({nullable: true})
     amount: number;
 
+    @Column({nullable: true})
+    recipeId: number;
+
     @ManyToOne(type => Recipe, recipe => recipe.ingriedients,)
     recipe?: Recipe;
 }

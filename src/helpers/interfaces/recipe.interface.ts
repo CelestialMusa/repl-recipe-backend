@@ -5,7 +5,7 @@ export interface IRecipe{
     difficulty_level: DIFFICULTY_LEVEL,
     ingriedients?: Ingriedient[],
     instructions: string,
-    recipe_image?: File,
+    recipe_image_name?: string,
 }
 
 export enum MEAL_TYPE{
